@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="https://old-react-portfolio.netlify.app/static/media/logo10.c52cf20540bf23318ce33bebf5743495.svg"
+    />
+
+    <title>Paginação</title>
+    <style>
+      * {
+        border: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: #d8d8d8;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: #111;
+        margin: 0;
+      }
+      nav {
+        height: 75px;
+        display: flex;
+        background: rgba(34, 34, 34, 0.1);
+        border-top: 5px solid tomato;
+      }
+      nav a {
+        margin: 0 auto;
+        padding: 10px;
+      }
+      nav img {
+        max-height: 100%;
+        filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.25));
+      }
+      .total-items {
+        width: 100vw;
+        margin: 25px auto 5px;
+        position: flex;
+        width: 90vw;
+        max-width: 800px;
+        font-size: 0.9rem;
+        filter: opacity(0.7);
+      }
+      .inputs {
+        display: flex;
+        flex-direction: column;
+        width: 500px;
+        max-width: 90vw;
+        margin: 25px auto 0;
+      }
+      input {
+        padding: 5px;
+        flex-grow: 1;
+        background: #f0f0f0;
+      }
+      .input-wrapper {
+        margin-bottom: 2px;
+        width: 100%;
+        display: flex;
+      }
+      .input-wrapper button {
+        margin: 0;
+        background: tomato;
+        color: #f0f0f0;
+      }
+      label {
+        margin-top: 5px;
+        margin-bottom: 2px;
+        color: #f0f0f0;
+        font-weight: lighter;
+        font-size: 0.9rem;
+        filter: opacity(0.7);
+      }
+      button {
+        padding: 8px 2px;
+        width: 45px;
+        height: 31px;
+        border: none;
+        margin-top: 2px;
+        margin-left: 2px;
+        cursor: pointer;
+        box-shadow: 0 0 2px rgba(0, 0, 0, 0.25);
+      }
+      button:hover:not([disabled]) {
+        filter: opacity(0.85);
+      }
+      .all-buttons {
+        display: flex;
+        justify-content: center;
+      }
+      .page-buttons {
+        width: fit-content;
+        text-align: center;
+        margin-bottom: 25px;
+      }
+      .active {
+        background: tomato;
+        color: #f0f0f0;
+      }
+      .list {
+        background: rgba(34, 34, 34, 0.05);
+        min-height: fit-content;
+        width: 90vw;
+        max-width: 800px;
+        padding: 10px;
+        margin: 0 auto 15px;
+      }
+      li {
+        color: #333;
+        list-style: none;
+        background: #f0f0f0;
+        margin-bottom: 2px;
+        padding: 5px 0 5px 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <a href="https://www.github.com/luciano44">
+        <img
+          src="https://old-react-portfolio.netlify.app/static/media/logo10.c52cf20540bf23318ce33bebf5743495.svg"
+          alt="logo"
+        />
+      </a>
+    </nav>
+    <div class="inputs">
+      <div class="input-wrapper">
+        <input
+          class="total-item-qty"
+          type="number"
+          placeholder="Quantidade total de items"
+        />
+        <button onclick="changeTotalItemQty()">Gerar</button>
+      </div>
+      <div class="input-wrapper">
+        <input
+          class="item-qty"
+          type="number"
+          placeholder="Quantidade de Items por página"
+        />
+        <button onclick="changeItemsPerPage()">Gerar</button>
+      </div>
+
+      <div class="input-wrapper">
+        <input
+          class="btn-qty"
+          type="number"
+          placeholder="Quantidade de botões por lado do principal"
+        />
+        <button onclick="changeButtonQty()">Gerar</button>
+      </div>
+    </div>
+
+    <p class="total-items"></p>
+    <div class="list"></div>
+    <div class="all-buttons">
+      <button onclick="arrowSwitchPage('first')"><<</button>
+      <button onclick="arrowSwitchPage('prev')"><</button>
+      <div class="page-buttons"></div>
+      <button onclick="arrowSwitchPage('next')">></button>
+      <button onclick="arrowSwitchPage('last')">>></button>
+    </div>
+
+    <script>
+      const pageButtons = qs(".page-buttons");
+      const list = qs(".list");
+
+      let items = [];
+      let allEmojis = [
+        "😀",
+        "😁",
+        "😂",
+        "😃",
+        "😄",
+        "😅",
+        "😆",
+        "😇",
+        "😈",
+        "👿",
+        "😉",
+        "😊",
+        "☺️",
+        "😋",
+        "😌",
+        "😍",
+        "😎",
+        "😏",
+        "😐",
+        "😑",
+        "😒",
+        "😓",
+        "😔",
+        "😕",
+        "😖",
+        "😗",
+        "😘",
+        "😙",
+        "😚",
+        "😛",
+        "😜",
+        "😝",
+        "😞",
+        "😟",
+        "😠",
+        "😡",
+        "😢",
+        "😣",
+        "😤",
+        "😥",
+        "😦",
+        "😧",
+        "😨",
+        "😩",
+        "😪",
+        "😫",
+        "😬",
+        "😭",
+        "😮",
+        "😯",
+        "😰",
+        "😱",
+        "😲",
+        "😳",
+        "😴",
+        "😵",
+        "😶",
+        "😷",
+        "😸",
+        "😹",
+        "😺",
+        "😻",
+        "😼",
+        "😽",
+        "😾",
+        "😿",
+        "🙀",
+        "👣",
+        "👤",
+        "👥",
+        "👶",
+        "👶🏻",
+        "👶🏼",
+        "👶🏽",
+        "👶🏾",
+        "👶🏿",
+        "👦",
+        "👦🏻",
+        "👦🏼",
+        "👦🏽",
+        "👦🏾",
+        "👦🏿",
+        "👨‍👩‍👧‍👧",
+        "👩‍👩‍👦",
+        "👩‍👩‍👧",
+        "👩‍👩‍👧‍👦",
+        "👩‍👩‍👦‍👦",
+        "👩‍👩‍👧‍👧",
+        "👨‍👨‍👦",
+        "👨‍👨‍👧",
+        "👨‍👨‍👧‍👦",
+        "👨‍👨‍👦‍👦",
+        "👮🏾",
+        "👮🏿",
+        "👷",
+        "👷🏻",
+        "👷🏼",
+        "👷🏽",
+        "👷🏾",
+        "👷🏿",
+        "👸",
+        "👸🏻",
+        "👸🏼",
+        "👼🏼",
+        "👼🏽",
+        "👼🏾",
+        "👼🏿",
+        "🎅",
+        "🎅🏻",
+        "🎅🏼",
+        "🎅🏽",
+        "🎅🏾",
+        "🎅🏿",
+        "👻",
+        "👹",
+        "👺",
+        "💩",
+        "💀",
+        "👽",
+        "👾",
+        "🙇",
+        "🙇🏻",
+        "🙇🏼",
+        "🙇🏽",
+        "🙇🏾",
+        "🙇🏿",
+        "💁",
+        "💁🏻",
+        "🙅🏻",
+        "🙅🏼",
+        "🙅🏽",
+        "🙅🏾",
+        "🙅🏿",
+        "🙍🏿",
+        "💆",
+        "💆🏻",
+        "💆🏼",
+        "💆🏽",
+        "💆🏾",
+        "💆🏿",
+        "👀",
+        "👃",
+        "👃🏻",
+        "👃🏼",
+        "👃🏽",
+        "👃🏾",
+        "👃🏿",
+        "👄",
+        "💋",
+        "👅",
+        "💅",
+        "💅🏻",
+        "💅🏼",
+        "💅🏽",
+        "💅🏾",
+        "💅🏿",
+        "👋",
+        "👋🏻",
+        "👋🏼",
+        "👋🏽",
+        "👋🏾",
+        "👋🏿",
+        "👍",
+        "👍🏻",
+        "👍🏼",
+        "👍🏽",
+        "👍🏾",
+        "👍🏿",
+        "👎",
+        "👎🏻",
+        "👎🏼",
+        "👎🏽",
+        "👎🏾",
+        "👎🏿",
+        "☝",
+        "☝🏻",
+        "☝🏼",
+        "☝🏽",
+        "☝🏾",
+        "☝🏿",
+        "👆",
+        "👆🏻",
+        "👆🏼",
+        "👆🏽",
+        "👆🏾",
+        "👆🏿",
+        "👇",
+        "👇🏻",
+        "👇🏼",
+        "👇🏽",
+        "👇🏾",
+        "👇🏿",
+        "👈",
+        "👈🏻",
+        "👈🏼",
+        "👈🏽",
+        "👈🏾",
+        "👈🏿",
+        "👉",
+        "👉🏻",
+        "👉🏼",
+        "👉🏽",
+        "👉🏾",
+        "👉🏿",
+        "👌",
+        "👌🏻",
+        "👌🏼",
+        "👌🏽",
+        "👌🏾",
+        "👌🏿",
+        "✌",
+        "✌🏻",
+        "✌🏼",
+        "✌🏽",
+        "✌🏾",
+        "✌🏿",
+        "👊",
+        "👊🏻",
+        "👊🏼",
+        "👊🏽",
+        "👊🏾",
+        "👊🏿",
+        "✊",
+        "✊🏻",
+        "✊🏼",
+        "✊🏽",
+        "✊🏾",
+        "✊🏿",
+        "✋",
+        "✋🏻",
+        "✋🏼",
+        "✋🏽",
+        "✋🏾",
+        "✋🏿",
+        "💪",
+        "💪🏻",
+        "💪🏼",
+        "💪🏽",
+        "💪🏾",
+        "💪🏿",
+        "👐",
+        "👐🏻",
+        "👐🏼",
+        "👐🏽",
+        "👐🏾",
+        "👐🏿",
+        "🙏",
+        "🙏🏻",
+        "🙏🏼",
+        "🙏🏽",
+        "🙏🏾",
+        "🙏🏿",
+        "🌱",
+        "🌲",
+        "🌳",
+        "🌴",
+        "🌵",
+        "🌷",
+        "🌸",
+        "🌹",
+        "🌺",
+        "🌻",
+        "🌼",
+        "💐",
+        "🌾",
+        "🌿",
+        "🍀",
+        "🍁",
+        "🍂",
+        "🍃",
+        "🍄",
+        "🌰",
+        "🐀",
+        "🐁",
+        "🐭",
+        "🐹",
+        "🐂",
+        "🐃",
+        "🐄",
+        "🐮",
+        "🐅",
+        "🐆",
+        "🐯",
+        "🐇",
+        "🐰",
+        "🐈",
+        "🐱",
+        "🐎",
+        "🐴",
+        "🐏",
+        "🐑",
+        "🐐",
+        "🐓",
+        "🐔",
+        "🐤",
+        "🐣",
+        "🐥",
+        "🐦",
+        "🐧",
+        "🐘",
+        "🐪",
+        "🐫",
+        "🐗",
+        "🐖",
+        "🐷",
+        "🐽",
+        "🐕",
+        "🐩",
+        "🐶",
+        "🐺",
+        "🐻",
+        "🐨",
+        "🐼",
+        "🐵",
+        "🙈",
+        "🙉",
+        "🙊",
+        "🐒",
+        "🐉",
+        "🐲",
+        "🐊",
+        "🐍",
+        "🐢",
+        "🐸",
+        "🐋",
+        "🐳",
+        "🐬",
+        "🐙",
+        "🐟",
+        "🐠",
+        "🐡",
+        "🐚",
+        "🐌",
+        "🐛",
+        "🐜",
+        "🐝",
+        "🐞",
+        "🐾",
+        "⚡️",
+        "🔥",
+        "🌙",
+        "☀️",
+        "⛅️",
+        "☁️",
+        "💧",
+        "💦",
+        "☔️",
+        "💨",
+        "❄️",
+        "🌟",
+        "⭐️",
+        "🌠",
+        "🌄",
+        "🌅",
+        "🌈",
+        "🌊",
+        "🌋",
+        "🌌",
+        "🗻",
+        "🗾",
+        "🌐",
+        "🌍",
+        "🌎",
+        "🌏",
+        "🌑",
+        "🌒",
+        "🌓",
+        "🌔",
+        "🌕",
+        "🌖",
+        "🌗",
+        "🌘",
+        "🌚",
+        "🌝",
+        "🌛",
+        "🌜",
+        "🌞",
+        "🍅",
+        "🍆",
+        "🌽",
+        "🍠",
+        "🍇",
+        "🍈",
+        "🍉",
+        "🍊",
+        "🍋",
+        "🍌",
+        "🍍",
+        "🍎",
+        "🍏",
+        "🍐",
+        "🍑",
+        "🍒",
+        "🍓",
+        "🍔",
+        "🍕",
+        "🍖",
+        "🍗",
+        "🍘",
+        "🍙",
+        "🍚",
+        "🍛",
+        "🍜",
+        "🍝",
+        "🍞",
+        "🍟",
+        "🍡",
+        "🍢",
+        "🍣",
+        "🍤",
+        "🍥",
+        "🍦",
+        "🍧",
+        "🍨",
+        "🍩",
+        "🍪",
+        "🍫",
+        "🍬",
+        "🍭",
+        "🍮",
+        "🍯",
+        "🍰",
+        "🍱",
+        "🍲",
+        "🍳",
+        "🍴",
+        "🍵",
+        "☕️",
+        "🍶",
+        "🍷",
+        "🍸",
+        "🍹",
+        "🍺",
+        "🍻",
+        "🍼",
+        "🎀",
+        "🎁",
+        "🎂",
+        "🎃",
+        "🎄",
+        "🎋",
+        "🎍",
+        "🎑",
+        "🎆",
+        "🎇",
+        "🎉",
+        "🎊",
+        "🎈",
+        "💫",
+        "✨",
+        "💥",
+        "🎓",
+        "👑",
+        "🎎",
+        "🎏",
+        "🎐",
+        "🎌",
+        "🏮",
+        "💍",
+        "❤️",
+        "💔",
+        "💌",
+        "💕",
+        "💞",
+        "💓",
+        "💗",
+        "💖",
+        "💘",
+        "💝",
+        "💟",
+        "💜",
+        "💛",
+        "💚",
+        "💙",
+        "🏃",
+        "🏃🏻",
+        "🏃🏼",
+        "🏃🏽",
+        "🏃🏾",
+        "🏃🏿",
+        "🚶",
+
+        "🚴🏼",
+        "🚴🏽",
+        "🚴🏾",
+        "🚴🏿",
+        "🚵",
+        "🚵🏻",
+        "🚵🏼",
+        "🚵🏽",
+        "🚵🏾",
+        "🚵🏿",
+        "🏇",
+        "🏇🏻",
+        "🏇🏼",
+        "🏇🏽",
+        "🏇🏾",
+        "🏇🏿",
+        "⛺️",
+        "🎣",
+        "⚽️",
+        "🏀",
+        "🏈",
+        "⚾️",
+        "🎾",
+        "🏉",
+        "⛳️",
+        "🏆",
+        "🎽",
+        "🏁",
+        "🎹",
+        "🎸",
+        "🎻",
+        "🎷",
+        "🎺",
+        "🎵",
+        "🎶",
+        "🎼",
+        "🎧",
+        "🎤",
+        "🎭",
+        "🎫",
+        "🎩",
+        "🎪",
+        "🎬",
+        "🎨",
+        "🎯",
+        "🎱",
+        "🎳",
+        "🎰",
+        "🎲",
+        "🎮",
+        "🎴",
+        "🃏",
+        "🀄️",
+        "🎠",
+        "🎡",
+        "🎢",
+        "🚃",
+        "🚞",
+        "🚂",
+        "🚋",
+        "🚝",
+        "🚄",
+        "🚅",
+        "🚆",
+        "🚇",
+        "🚈",
+        "🚉",
+        "🚊",
+        "🚌",
+        "🚍",
+        "🚎",
+        "🚐",
+        "🚑",
+        "🚒",
+        "🚓",
+        "🚔",
+        "🚨",
+        "🚕",
+        "🚖",
+        "🚗",
+        "🚘",
+        "🚙",
+        "🚚",
+        "🚛",
+        "🚜",
+        "🚲",
+        "🚏",
+        "⛽️",
+        "🚧",
+        "🚦",
+        "🚥",
+        "🚀",
+        "🚁",
+        "✈️",
+        "💺",
+        "⚓️",
+        "🚢",
+        "🚤",
+        "⛵️",
+        "🚡",
+        "🚠",
+        "🚟",
+        "🛂",
+        "🛃",
+        "🛄",
+        "🛅",
+        "💴",
+        "💶",
+        "💷",
+        "💵",
+        "🗽",
+        "🗿",
+        "🌁",
+        "🗼",
+        "⛲️",
+        "🏰",
+        "🏯",
+        "🌇",
+        "🌆",
+        "🌃",
+        "🌉",
+        "🏠",
+        "🏡",
+        "🏢",
+        "🏬",
+        "🏭",
+        "🏣",
+        "🏤",
+        "🏥",
+        "🏦",
+        "🏨",
+        "🏩",
+        "💒",
+        "⛪️",
+        "🏪",
+        "🏫",
+        "⌚️",
+        "📱",
+        "📲",
+        "💻",
+        "⏰",
+        "⏳",
+        "⌛️",
+        "📷",
+        "📹",
+        "🎥",
+        "📺",
+        "📻",
+        "📟",
+        "📞",
+        "☎️",
+        "📠",
+        "💽",
+        "💾",
+        "💿",
+        "📀",
+        "📼",
+        "🔋",
+        "🔌",
+        "💡",
+        "🔦",
+        "📡",
+        "💳",
+        "💸",
+        "💰",
+        "💎",
+        "🌂",
+        "👝",
+        "👛",
+        "👜",
+        "💼",
+        "🎒",
+        "💄",
+        "👓",
+        "👒",
+        "👡",
+        "👠",
+        "👢",
+        "👞",
+        "👟",
+        "👙",
+        "👗",
+        "👘",
+        "👚",
+        "👕",
+        "👔",
+        "👖",
+        "🚪",
+        "🚿",
+        "🛁",
+        "🚽",
+        "💈",
+        "💉",
+        "💊",
+        "🔬",
+        "🔭",
+        "🔮",
+        "🔧",
+        "🔪",
+        "🔩",
+        "🔨",
+        "💣",
+        "🚬",
+        "🔫",
+        "🔖",
+        "📰",
+        "🔑",
+        "✉️",
+        "📩",
+        "📨",
+        "📧",
+        "📥",
+        "📤",
+        "📦",
+        "📯",
+        "📮",
+        "📪",
+        "📫",
+        "📬",
+        "📭",
+        "📄",
+        "📃",
+        "📑",
+        "📈",
+        "📉",
+        "📊",
+        "📅",
+        "📆",
+        "🔅",
+        "🔆",
+        "📜",
+        "📋",
+        "📖",
+        "📓",
+        "📔",
+        "📒",
+        "📕",
+        "📏",
+        "🚩",
+        "📁",
+        "📂",
+        "✒️",
+        "✏️",
+        "📝",
+        "🔏",
+        "🔐",
+        "🔒",
+        "🔓",
+        "📣",
+        "📢",
+        "🔈",
+        "🔉",
+        "🔊",
+        "🔇",
+        "💤",
+        "🔔",
+        "🔕",
+        "💭",
+        "💬",
+        "🚸",
+        "🔍",
+        "🔎",
+        "🚫",
+        "⛔️",
+        "📛",
+        "🚷",
+        "🚯",
+        "🚳",
+        "🚱",
+        "📵",
+        "🔞",
+        "🉑",
+        "🉐",
+        "💮",
+        "㊙️",
+        "㊗️",
+        "🈴",
+        "🈵",
+        "🈲",
+        "🈶",
+        "🈚️",
+        "🈸",
+        "🈺",
+        "🈷",
+        "🈹",
+        "🈳",
+        "🈂",
+        "🈁",
+        "🈯️",
+        "💹",
+        "❇️",
+        "🅾",
+        "🆘",
+        "🆔",
+        "🅿️",
+        "🚾",
+        "🆒",
+        "🚻",
+        "🚹",
+        "🚺",
+        "🚼",
+        "♿️",
+        "🚰",
+        "🚭",
+        "🚮",
+        "▶️",
+        "◀️",
+        "💱",
+        "🔚",
+        "🔙",
+        "🔴",
+        "🔵",
+        "🔺",
+        "🔻",
+        "🔸",
+        "🔹",
+        "🔶",
+        "🕣",
+        "🕤",
+        "🕥",
+        "🕦",
+        "🕧",
+      ];
+
+      let itemQty = 650;
+      let itemsPerPage = 15;
+      let qtyButtonsPerSide = 2;
+
+      function changeItemsPerPage() {
+        let input = Number(qs(".item-qty").value);
+        if (input < 1) input = 1;
+        itemsPerPage = input;
+        start(1);
+      }
+      function changeButtonQty() {
+        let input = Number(qs(".btn-qty").value);
+        if (input < 1) input = 1;
+        qtyButtonsPerSide = input;
+        start(1);
+      }
+      function changeTotalItemQty() {
+        let input = Number(qs(".total-item-qty").value);
+        if (input < 1) input = 1;
+        itemQty = input;
+        start(1);
+      }
+
+      function qs(element) {
+        return document.querySelector(element);
+      }
+
+      function updateMessage() {
+        const totalPages = Math.ceil(items.length / itemsPerPage);
+        qs(
+          ".total-items"
+        ).innerText = `${itemQty} items, mostrando ${itemsPerPage} por página, em um total de ${totalPages} páginas `;
+      }
+
+      function generateItems() {
+        items = [];
+
+        for (i = 1; i <= itemQty; i++) {
+          const randomNum = Math.ceil(Math.random() * allEmojis.length) - 1;
+
+          items.push(`${allEmojis[randomNum]} - Item número ${i}`);
+        }
+      }
+      function createButton(content) {
+        const btn = document.createElement("button");
+        btn.innerText = content;
+
+        return btn;
+      }
+      function updateButtons(currentPage) {
+        const totalPages = Math.ceil(items.length / itemsPerPage);
+
+        pageButtons.innerHTML = "";
+
+        currentPage = Number(currentPage);
+
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        let loopStart = currentPage - qtyButtonsPerSide;
+        let loopEnd = currentPage + qtyButtonsPerSide;
+
+        if (loopStart <= 1) {
+          loopStart = 1;
+          loopEnd = qtyButtonsPerSide * 2 + 1;
+        }
+        if (loopEnd > totalPages) {
+          loopEnd = totalPages;
+          loopStart = loopEnd - qtyButtonsPerSide * 2;
+          if (loopStart < 1) loopStart = 1;
+        }
+
+        for (i = loopStart; i <= loopEnd; i++) {
+          const btn = createButton(i);
+          if (btn.innerText === String(currentPage)) {
+            btn.classList.add("active");
+            btn.setAttribute("disabled", "");
+          }
+          pageButtons.append(btn);
+        }
+
+        addButtonEventListeners();
+        updateItems(currentPage);
+      }
+      function createAndAppendItem(content) {
+        if (!content) return;
+
+        const li = document.createElement("li");
+        li.innerText = content;
+
+        list.append(li);
+      }
+      function updateItems(currentPage) {
+        list.innerHTML = "";
+        currentPage--;
+        const loopStart = currentPage * itemsPerPage;
+        const loopEnd = currentPage * itemsPerPage + itemsPerPage;
+        for (let i = loopStart; i < loopEnd; i++) {
+          createAndAppendItem(items[i]);
+        }
+      }
+      function arrowSwitchPage(to) {
+        const totalPages = Math.ceil(items.length / itemsPerPage);
+
+        switch (to) {
+          case "first":
+            updateButtons(1);
+            break;
+          case "prev":
+            updateButtons(Number(qs(".active").innerText) - 1);
+            break;
+          case "next":
+            updateButtons(Number(qs(".active").innerText) + 1);
+            break;
+          case "last":
+            updateButtons(totalPages);
+            break;
+
+          default:
+            break;
+        }
+      }
+      function addButtonEventListeners() {
+        const buttons = document.querySelectorAll(".page-buttons button");
+        buttons.forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            updateButtons(e.target.innerText);
+            updateItems(e.target.innerText);
+          });
+        });
+      }
+
+      function start(currentPage) {
+        generateItems();
+        updateButtons(currentPage);
+        updateItems(currentPage);
+        updateMessage();
+      }
+
+      start(1);
+    </script>
+  </body>
+</html>
